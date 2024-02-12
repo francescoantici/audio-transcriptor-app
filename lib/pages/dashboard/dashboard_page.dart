@@ -30,7 +30,7 @@ class DashboardPage extends ConsumerWidget with UiDimension, UiUtility {
                 ),
                 childBuilder: (context) => SliverList.separated(
                   itemCount: data.value.length,
-                  itemBuilder: (context, index) => const AudioRecordListItem(),
+                  itemBuilder: (context, index) => AudioRecordListItem(record: data.value[index]),
                   separatorBuilder: (context, _) => mediumDivider,
                 ),
               ),

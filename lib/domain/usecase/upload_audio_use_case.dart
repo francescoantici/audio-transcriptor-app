@@ -26,9 +26,10 @@ class UploadAudioUseCase {
     if (result == null) return Future.value();
     final files = result.files;
     if (files.isEmpty) return Future.value();
-    final fileBytes = files.first.bytes;
-    if (fileBytes == null) return Future.value();
+    final file = files.first;
+    final bytes = file.bytes;
+    if (bytes == null) return Future.value();
     logger.logMessage('Uploading audio record: ${files.first.name}');
-    return repository.uploadAudioRecord(fileBytes);
+    return repository.uploadAudioRecord(bytes, filename: file.name);
   }
 }
