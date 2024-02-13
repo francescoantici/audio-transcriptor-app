@@ -8,12 +8,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-final audioRecordsProvider = StreamProvider<List<AudioRecord>>((ref) {
-  final repo = ref.watch(audioRepositoryProvider);
-  ref.onAddListener(repo.fetchValues);
-  return repo.audioRecordsStream;
-});
-
 final audioRepositoryProvider = Provider<IAudioRecordRepository>((ref) {
   final dio = ref.read(dioProvider);
   final logger = ref.read(loggerManagerProvider);
@@ -30,8 +24,7 @@ final audioRepositoryProvider = Provider<IAudioRecordRepository>((ref) {
 
 abstract class IAudioRecordRepository {
   Future<void> uploadAudioRecord(Uint8List bytes, {required String filename});
-  Stream<List<AudioRecord>> get audioRecordsStream;
-  Future<void> fetchValues();
+  Future<List<AudioRecord>> fetchValues();
 }
 
 class ApiAudioRecordRepository extends IAudioRecordRepository {
@@ -45,42 +38,27 @@ class ApiAudioRecordRepository extends IAudioRecordRepository {
 
   final _audioRecords = <AudioRecord>[];
 
-  final audioRecordsController = StreamController<List<AudioRecord>>.broadcast();
-
-  @override
-  Stream<List<AudioRecord>> get audioRecordsStream => audioRecordsController.stream;
-
   @override
   Future<void> uploadAudioRecord(Uint8List bytes, {required String filename}) async {
-    try {
-      final multipartFile = MultipartFile.fromBytes(bytes, filename: filename);
-      final form = FormData.fromMap({
-        'audio_file': multipartFile,
-      });
-      final response = await dio.post<Map<String, dynamic>>(
-        AppEnv.apiUri,
-        data: form,
-      );
-      final data = response.data;
-      final parsed = AudioRecord.fromJson(data!);
-      final values = [..._audioRecords, parsed];
-      _audioRecords.add(parsed);
-      audioRecordsController.add(values);
-      return Future.value();
-    } on DioException catch (e) {
-      logger.logExeption(e);
-      return Future.value();
-    } catch (e) {
-      return Future.value();
-    }
+    final multipartFile = MultipartFile.fromBytes(bytes, filename: filename);
+    final form = FormData.fromMap({
+      'audio_file': multipartFile,
+    });
+    final response = await dio.post<Map<String, dynamic>>(
+      AppEnv.apiUri,
+      data: form,
+    );
+    final data = response.data;
+    final parsed = AudioRecord.fromJson(data!);
+    _audioRecords.add(parsed);
+    return Future.value();
   }
 
   @override
-  Future<void> fetchValues() {
+  Future<List<AudioRecord>> fetchValues() {
     logger.logMessage('Fetching audio records');
     final values = [..._audioRecords];
-    audioRecordsController.add(values);
-    return Future.value();
+    return Future.value(values);
   }
 }
 
@@ -101,11 +79,6 @@ class MockAudioRecordRepository extends IAudioRecordRepository {
     ),
   ];
 
-  final audioRecordsController = StreamController<List<AudioRecord>>.broadcast();
-
-  @override
-  Stream<List<AudioRecord>> get audioRecordsStream => audioRecordsController.stream;
-
   @override
   Future<void> uploadAudioRecord(Uint8List bytes, {required String filename}) async {
     final mock = AudioRecord(
@@ -115,17 +88,14 @@ class MockAudioRecordRepository extends IAudioRecordRepository {
       targetLanguage: 'en',
       translatedText: 'Hello how are you?',
     );
-    final values = [..._audioRecords, mock];
     _audioRecords.add(mock);
-    audioRecordsController.add(values);
     return Future.value();
   }
 
   @override
-  Future<void> fetchValues() {
+  Future<List<AudioRecord>> fetchValues() {
     logger.logMessage('Fetching audio records');
     final values = [..._audioRecords];
-    audioRecordsController.add(values);
-    return Future.value();
+    return Future.value(values);
   }
 }
