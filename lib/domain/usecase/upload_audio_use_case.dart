@@ -16,7 +16,7 @@ class UploadAudioUseCase {
     required this.logger,
   });
 
-  final AudioRecordRepository repository;
+  final IAudioRecordRepository repository;
   final LoggerManager logger;
 
   Future<void> perform() async {

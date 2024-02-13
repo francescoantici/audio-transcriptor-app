@@ -21,4 +21,4 @@ jobs:
         with:
           webRenderer: canvaskit
           baseHref: /audio-transcriptor-app/
-          customArgs: --dart-define="ENV=Prod"
+          customArgs: --dart-define="ENV=Prod" --dart-define="API_URI=https://ea72-2-37-206-133.ngrok-free.app/transcribe"
